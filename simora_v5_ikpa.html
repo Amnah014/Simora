@@ -1,0 +1,716 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sage:#a8c5b5;--sage-light:#c8ddd4;--sage-bg:#e8f0ec;--sage-card:#d4e6de;
+  --sidebar:#b5cfc4;--blush:#d4848a;--blush-light:#e8b0b4;--blush-soft:#f5e0e2;
+  --yellow:#f5c842;--dark:#2c3e35;--text:#1a2e24;--muted:#5a7a6a;
+}
+body{font-family:'Source Sans 3',sans-serif;background:var(--sage-bg);color:var(--text);min-height:600px}
+.app{display:flex;min-height:600px}
+.sidebar{width:215px;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.3)}
+.logo-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--text);letter-spacing:-1px;line-height:1}
+.logo-sub{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.3px;margin-top:2px}
+.nav{padding:16px 0;flex:1}
+.nav-item{display:block;padding:11px 16px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;border-left:3px solid transparent;transition:all .15s;line-height:1.4;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.3)}
+.nav-item.active{background:rgba(255,255,255,0.45);border-left:3px solid var(--blush)}
+.kpu-logo{padding:14px 16px;text-align:center;border-top:1px solid rgba(255,255,255,0.3)}
+.kpu-badge{background:var(--text);color:#fff;font-size:8px;font-weight:700;letter-spacing:1px;padding:5px 10px;border-radius:4px;line-height:1.6;text-align:center}
+.main{flex:1;padding:20px 24px;overflow:auto;min-width:0}
+.page{display:none}.page.active{display:block}
+.page-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;text-align:center;margin-bottom:14px;color:var(--text)}
+.url-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.url-input{flex:1;padding:7px 10px;border:1px solid var(--sage);border-radius:6px;font-size:11px;background:rgba(255,255,255,0.8);color:var(--text);outline:none}
+.url-input:focus{border-color:var(--blush)}
+.btn-load{background:var(--sage);color:var(--dark);border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-load:hover{background:var(--sage-light)}
+.btn-demo{background:var(--blush-soft);color:var(--blush);border:1px solid var(--blush-light);padding:7px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
+.btn-demo:hover{background:var(--blush-light);color:#fff}
+.filters{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters label{font-size:12px;font-weight:700}
+.filters select{background:var(--blush-light);border:none;padding:6px 26px 6px 9px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5 4.5-5z' fill='%23555'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
+.summary-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.summary-cards-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.scard{background:var(--sage-card);border-radius:10px;padding:14px;text-align:center}
+.scard.highlight{background:var(--text)}
+.scard.highlight .scard-label{color:rgba(255,255,255,0.7)}
+.scard.highlight .scard-value{color:#fff}
+.scard-label{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;line-height:1.3}
+.scard-value{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text)}
+.bottom-row{display:grid;grid-template-columns:1fr 2fr;gap:12px;margin-bottom:14px}
+.detail-card,.chart-card{background:var(--sage-card);border-radius:10px;padding:16px}
+.card-title{font-size:13px;font-weight:700;text-align:center;margin-bottom:10px;color:var(--text)}
+.detail-item{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px dotted rgba(0,0,0,0.1)}
+.detail-item:last-child{border-bottom:none;font-weight:700}
+.chart-wrap{position:relative}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:10.5px}
+.tbl th{background:var(--sage);color:var(--dark);padding:6px 8px;text-align:center;font-weight:700;white-space:nowrap;position:sticky;top:0;z-index:1}
+.tbl td{padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.06);white-space:nowrap}
+.tbl tr:nth-child(even){background:rgba(255,255,255,0.35)}
+.tbl tr:hover{background:rgba(168,197,181,0.3)}
+.tbl .num{text-align:right}.tbl .ctr{text-align:center}
+.tbl .pct{text-align:center;font-weight:700;color:var(--blush)}
+.akun51{border-left:3px solid var(--sage)}.akun52{border-left:3px solid var(--blush)}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-51{background:var(--sage-card);color:var(--muted)}.badge-52{background:var(--blush-soft);color:var(--blush)}
+/* INDIKATOR */
+.h3-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.pie-card{background:var(--sage-card);border-radius:10px;padding:16px;text-align:center}
+.pie-label{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.pie-val{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text);margin-top:6px}
+.pie-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.ikpa-banner{background:var(--text);border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.ikpa-left{color:#fff}
+.ikpa-title{font-size:11px;font-weight:700;letter-spacing:1px;opacity:.7;margin-bottom:4px}
+.ikpa-score{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--yellow);line-height:1}
+.ikpa-right{display:flex;gap:16px;flex-wrap:wrap}
+.ikpa-stat{text-align:center}
+.ikpa-stat-label{font-size:9px;color:rgba(255,255,255,0.6);font-weight:700;letter-spacing:0.5px;margin-bottom:3px}
+.ikpa-stat-val{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:#fff}
+.dev-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.dev-card{background:var(--sage-card);border-radius:8px;padding:12px;text-align:center}
+.dev-card-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:4px}
+.dev-card-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:900}
+.red{color:var(--blush)}.green{color:#3a8f5a}.muted-c{color:var(--muted)}
+.h3-tbl-wrap{overflow-x:auto}
+.h3-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.h3-tbl th{background:var(--sage);padding:6px 8px;font-weight:700;text-align:center;white-space:nowrap}
+.h3-tbl td{padding:5px 8px;border-bottom:1px solid rgba(0,0,0,0.06);text-align:center;white-space:nowrap}
+.h3-tbl tr:nth-child(even){background:rgba(255,255,255,0.35)}
+.h3-tbl .bulan-col{text-align:left;font-weight:600}
+.h3-tbl .neg{color:var(--blush);font-weight:700}.h3-tbl .pos{color:#3a8f5a;font-weight:700}.h3-tbl .zer{color:var(--muted)}
+.th-rencana{background:#e8b0b4!important}.th-penyerapan{background:#a8c5b5!important}
+.th-deviasi{background:#f5c842!important;color:#333!important}.th-proporsi{background:#c8ddd4!important}
+.th-devtimbang{background:#e8d5a3!important;color:#333!important}
+.loading-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;line-height:2}
+.error-box{background:#fdecea;color:#c0392b;font-size:11px;padding:10px 14px;border-radius:8px;margin-bottom:10px;border-left:3px solid var(--blush)}
+</style>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">SIMORA</div>
+      <div class="logo-sub">Sistem Monitoring Anggaran</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" id="nav-rencana"   onclick="showPage('rencana')">- RENCANA PENARIKAN DANA</div>
+      <div class="nav-item"        id="nav-realisasi" onclick="showPage('realisasi')">- REALISASI</div>
+      <div class="nav-item"        id="nav-indikator" onclick="showPage('indikator')">- INDIKATOR H3 DIPA</div>
+    </nav>
+    <div class="kpu-logo">
+      
+      <div class="kpu-badge">
+        <img src="Asset\1627539868logo-kpu.png" alt="Logo KPU" style="width:60%; height:60%; object-fit:contain;">
+        <br>KPU<br>KOLAKA TIMUR</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- RENCANA -->
+    <div id="page-rencana" class="page active">
+      <div class="page-title">Rencana Penarikan Dana</div>
+      <!-- <div class="url-bar">
+        <input class="url-input" id="apiUrl" placeholder="Paste URL Apps Script Web App di sini...">
+        <button class="btn-load" onclick="fetchAll()">Muat Data</button>
+        <button class="btn-demo" onclick="loadDemo()">Demo</button>
+      </div> -->
+      <div id="errorBox" class="error-box" style="display:none"></div>
+      <div class="filters">
+        <label>Filter :</label>
+        <select id="rn_bulan" onchange="renderRencana()">
+          <option value="">Semua Bulan</option>
+          <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
+          <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
+          <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+        </select>
+        <select id="rn_akun" onchange="renderRencana()">
+          <option value="">Semua Akun</option><option value="51">Akun 51</option><option value="52">Akun 52</option>
+        </select>
+      </div>
+      <div id="rencanaBody"><div class="loading-state">Masukkan URL Apps Script lalu klik <strong>Muat Data</strong>,<br>atau klik <strong>Demo</strong> untuk contoh tampilan.</div></div>
+    </div>
+
+    <!-- REALISASI -->
+    <div id="page-realisasi" class="page">
+      <div class="page-title">Realisasi</div>
+      <div class="filters">
+        <label>Filter :</label>
+        <select id="r_bulan" onchange="renderRealisasi()">
+          <option value="">Semua Bulan</option>
+          <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
+          <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
+          <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+        </select>
+        <select id="r_akun" onchange="renderRealisasi()">
+          <option value="">Semua Akun</option><option value="51">Akun 51</option><option value="52">Akun 52</option>
+        </select>
+      </div>
+      <div id="realisasiBody"><div class="loading-state">Muat data terlebih dahulu.</div></div>
+    </div>
+
+    <!-- INDIKATOR H3 DIPA -->
+    <div id="page-indikator" class="page">
+      <div class="page-title">Indikator Halaman 3 DIPA</div>
+      <div class="filters">
+        <label>Filter :</label>
+        <select id="h3_bulan" onchange="renderIndikator()">
+          <option value="">Semua Bulan</option>
+          <option>Januari</option><option>Februari</option><option>Maret</option><option>April</option>
+          <option>Mei</option><option>Juni</option><option>Juli</option><option>Agustus</option>
+          <option>September</option><option>Oktober</option><option>November</option><option>Desember</option>
+        </select>
+        <select id="h3_akun" onchange="renderIndikator()">
+          <option value="">Semua Akun</option><option value="51">Akun 51</option><option value="52">Akun 52</option>
+        </select>
+      </div>
+      <div id="indikatorBody"><div class="loading-state">Muat data terlebih dahulu.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzEhxsHDhc-059aZaJWHwBcQ2vd0D1skPxLdLUqpB2pT_9s0Ih38IQun1a_x_4r7wbpTQ/exec";
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+let dataRencana=[], dataRealisasi=[], dataIndikator=[];
+let charts={};
+
+const fmt    = n => (Number(n)||0).toLocaleString('id-ID');
+const fmtF   = (n,d=2) => (Number(n)||0).toFixed(d);
+const dChart = id => { if(charts[id]){charts[id].destroy();delete charts[id];} };
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+}
+
+/* ── FUNGSI KHUSUS RENCANA (Versi Perbaikan Total) ── */
+function renderRencana() {
+  const bodyId = 'rencanaBody';
+  if (!dataRencana || dataRencana.length === 0) {
+    document.getElementById(bodyId).innerHTML = '<div class="loading-state">Data tidak ditemukan atau sedang dimuat...</div>';
+    return;
+  }
+
+  const bulan = document.getElementById('rn_bulan').value;
+  const akun = document.getElementById('rn_akun').value;
+  
+  // Filter baris berdasarkan pilihan Akun
+  const rows = dataRencana.filter(r => !akun || String(r.kodeAkun).startsWith(akun));
+
+  let totalPagu = 0;
+  let totalRen = 0;
+  let val51 = 0;
+  let val52 = 0;
+
+  rows.forEach(r => {
+    // Ambil Pagu (r.pagu sesuai Apps Script r[5])
+    const p = Number(r.pagu) || 0;
+    totalPagu += p;
+
+    // Ambil Nilai Rencana
+    let v = 0;
+    if (bulan && bulan !== "") {
+      // Mengambil dari objek bulanData sesuai Apps Script
+      v = Number(r.bulanData ? r.bulanData[bulan] : 0) || 0;
+    } else {
+      // Mengambil dari totalRencana sesuai Apps Script r[18]
+      v = 0;
+        if (r.bulanData) {
+          Object.values(r.bulanData).forEach(val => {
+            v += Number(val) || 0;
+          });
+        }
+    }
+    totalRen += v;
+
+    // Kelompokkan untuk Detail Akun
+    const k = String(r.kodeAkun);
+    if (k.startsWith('51')) val51 += v;
+    else if (k.startsWith('52')) val52 += v;
+  });
+
+  // Hitung data untuk Grafik
+  const byBulan = {};
+  BULAN.forEach(b => byBulan[b] = 0);
+  rows.forEach(r => {
+    BULAN.forEach(b => {
+      if(r.bulanData && r.bulanData[b]) {
+        byBulan[b] += Number(r.bulanData[b]) || 0;
+      }
+    });
+  });
+
+  // Tampilkan ke UI
+  document.getElementById(bodyId).innerHTML = `
+    <div class="summary-cards">
+      <div class="scard"><div class="scard-label">Total Pagu</div><div class="scard-value">${fmt(totalPagu)}</div></div>
+      <div class="scard" style="background:#fcebed"><div class="scard-label">Total Rencana ${bulan ? '(' + bulan + ')' : ''}</div><div class="scard-value">${fmt(totalRen)}</div></div>
+      <div class="scard"><div class="scard-label">Sisa Anggaran</div><div class="scard-value">${fmt(totalPagu - totalRen)}</div></div>
+    </div>
+    <div class="bottom-row">
+      <div class="detail-card">
+        <div class="card-title">Detail Akun</div>
+        <div class="detail-item"><span>Rencana Akun 51</span><span>${fmt(val51)}</span></div>
+        <div class="detail-item"><span>Rencana Akun 52</span><span>${fmt(val52)}</span></div>
+        <div class="detail-item" style="font-weight:700; border-top:1px dashed #ccc; margin-top:5px; padding-top:5px">
+          <span>Total</span><span>${fmt(val51 + val52)}</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">Grafik Rencana Perbulan</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cRencana"></canvas></div>
+      </div>
+    </div>
+    <div class="detail-card">
+      <div class="card-title">Tabel Rencana ${bulan ? '— ' + bulan : ''}</div>
+      <div class="tbl-wrap" style="max-height:300px;overflow-y:auto">
+        <table class="tbl">
+          <thead><tr><th>No</th><th>Akun</th><th>Uraian</th><th>Pagu</th><th>Rencana</th>${!bulan ? '<th>Sisa</th><th>%</th>' : ''}</tr></thead>
+          <tbody>
+            ${rows.map(r => {
+              const p = Number(r.pagu) || 0;
+              const v = bulan 
+                ? (Number(r.bulanData?.[bulan]) || Number(r[bulan]) || 0) 
+                : Object.values(r.bulanData || {}).reduce((s,v)=>s+(Number(v)||0),0);
+              return `<tr>
+                <td>${r.no || ''}</td>
+                <td><span class="badge badge-${String(r.kodeAkun).startsWith('51') ? '51' : '52'}">${r.kodeAkun}</span></td>
+                <td class="uraian-cell">${r.uraian}</td>
+                <td class="num">${fmt(p)}</td>
+                <td class="num">${fmt(v)}</td>
+                ${!bulan ? `<td class="num">${fmt(p - v)}</td><td class="pct">${p > 0 ? ((v / p) * 100).toFixed(1) : 0}%</td>` : ''}
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  renderChart('cRencana', byBulan, 'Total Rencana', '#d4848a');
+}
+
+/* ── FUNGSI KHUSUS REALISASI (Versi Perbaikan Total) ── */
+function renderRealisasi() {
+  const bodyId = 'realisasiBody';
+  if (!dataRealisasi || !dataRealisasi.length) {
+    document.getElementById(bodyId).innerHTML = '<div class="loading-state">Belum ada data Realisasi.</div>';
+    return;
+  }
+
+  const bulan = document.getElementById('r_bulan').value;
+  const akun = document.getElementById('r_akun').value;
+  
+  // Filter baris
+  const rows = dataRealisasi.filter(r => !akun || String(r.kodeAkun || r.kode_akun || "").startsWith(akun));
+
+  // Hitung Total Pagu & Realisasi dengan pengecekan nama kolom
+  let totalPagu = 0;
+  let totalRea = 0;
+  let val51 = 0;
+  let val52 = 0;
+
+  rows.forEach(r => {
+    // Ambil Pagu (cek beberapa kemungkinan nama kolom)
+    const p = Number(r.pagu) || Number(r.pagu_total) || Number(r.pagu_anggaran) || 0;
+    totalPagu += p;
+
+    // Ambil Nilai Realisasi (Bulan atau Total)
+    let v = 0;
+    if (bulan && bulan !== "") {
+      // Mengambil dari objek bulanData sesuai Apps Script
+      v = Number(r.bulanData ? r.bulanData[bulan] : 0) || 0;
+    } else {
+      // Mengambil dari totalRencana sesuai Apps Script r[18]
+      v = 0;
+        if (r.bulanData) {
+          Object.values(r.bulanData).forEach(val => {
+            v += Number(val) || 0;
+          });
+        }
+    }
+    totalRea += v;
+
+    // Kelompokkan per Akun untuk Detail
+    const kode = String(r.kodeAkun || r.kode_akun || "");
+    if (kode.startsWith('51')) val51 += v;
+    else if (kode.startsWith('52')) val52 += v;
+  });
+
+  // Kalkulasi Grafik
+  const byBulan = {};
+  BULAN.forEach(b => byBulan[b] = 0);
+  rows.forEach(r => {
+    BULAN.forEach(b => {
+      byBulan[b] += (Number(r.bulanData?.[b]) || Number(r[b]) || 0);
+    });
+  });
+
+  document.getElementById(bodyId).innerHTML = `
+    <div class="summary-cards">
+      <div class="scard"><div class="scard-label">Total Pagu</div><div class="scard-value">${fmt(totalPagu)}</div></div>
+      <div class="scard" style="background:#edf7f2"><div class="scard-label">Total Realisasi ${bulan ? '(' + bulan + ')' : ''}</div><div class="scard-value">${fmt(totalRea)}</div></div>
+      <div class="scard"><div class="scard-label">Sisa Anggaran</div><div class="scard-value">${fmt(totalPagu - totalRea)}</div></div>
+    </div>
+    <div class="bottom-row">
+      <div class="detail-card">
+        <div class="card-title">Detail Akun Belanja</div>
+        <div class="detail-item"><span>Realisasi Akun 51</span><span>${fmt(val51)}</span></div>
+        <div class="detail-item"><span>Realisasi Akun 52</span><span>${fmt(val52)}</span></div>
+        <hr style="margin:8px 0; border:0; border-top:1px dashed #ccc">
+        <div class="detail-item" style="font-weight:700"><span>Grand Total</span><span>${fmt(val51 + val52)}</span></div>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">Grafik Realisasi Perbulan</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="cRealisasi"></canvas></div>
+      </div>
+    </div>
+    <div class="detail-card">
+      <div class="card-title">Tabel Realisasi ${bulan ? '— ' + bulan : ''}</div>
+      <div class="tbl-wrap" style="max-height:300px;overflow-y:auto">
+        <table class="tbl">
+          <thead><tr><th>No</th><th>Akun</th><th>Uraian</th><th>Pagu</th><th>Realisasi</th>${!bulan ? '<th>Sisa</th><th>%</th>' : ''}</tr></thead>
+          <tbody>
+            ${rows.map(r => {
+              const p = Number(r.pagu) || Number(r.pagu_total) || 0;
+              const v = bulan 
+                ? (Number(r.bulanData?.[bulan]) || Number(r[bulan]) || 0) 
+                : Object.values(r.bulanData || {}).reduce((s,v)=>s+(Number(v)||0),0);
+              const is51 = String(r.kodeAkun || r.kode_akun || "").startsWith('51');
+              return `<tr>
+                <td>${r.no || '-'}</td>
+                <td><span class="badge badge-${is51 ? '51' : '52'}">${r.kodeAkun || r.kode_akun}</span></td>
+                <td class="uraian-cell">${r.uraian || '-'}</td>
+                <td class="num">${fmt(p)}</td>
+                <td class="num">${fmt(v)}</td>
+                ${!bulan ? `<td class="num">${fmt(p - v)}</td><td class="pct">${p > 0 ? ((v / p) * 100).toFixed(1) : 0}%</td>` : ''}
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  renderChart('cRealisasi', byBulan, 'Total Realisasi', '#a8c5b5');
+}
+
+function renderChart(canvasId, dataBulan, label, color) {
+  dChart(canvasId);
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: BULAN.map(b => b.slice(0, 3)),
+      datasets: [{
+        label: label,
+        data: BULAN.map(b => dataBulan[b] || 0),
+        backgroundColor: color,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 9 }, callback: v => v >= 1000000 ? (v / 1000000).toFixed(0) + 'jt' : v } },
+        y: { ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+}
+
+/* ── INDIKATOR H3 DIPA (struktur lengkap) ── */
+function siapkanDataKumulatif(semuaData) {
+    let totalDevTriwulan = 0;
+    let countTriwulan = 0;
+
+    semuaData.forEach((r, index) => {
+      const r51 = Number(r.rencana51) || 0;
+      const r52 = Number(r.rencana52) || 0;
+      const p51 = Number(r.penyerapan51) || 0;
+      const p52 = Number(r.penyerapan52) || 0;
+
+      const pctDev51 = r51 > 0 ? ((r51 - p51) / r51 * 100) : 0;
+      const pctDev52 = r52 > 0 ? ((r52 - p52) / r52 * 100) : 0;
+
+      const paguTotal = Number(r.paguKeseluruhan) || 0;
+      const prop51 = paguTotal > 0 ? (Number(r.pagu51) / paguTotal) : 0;
+      const prop52 = paguTotal > 0 ? (Number(r.pagu52) / paguTotal) : 0;
+
+      const devSeluruh = Math.abs(pctDev51 * prop51) + Math.abs(pctDev52 * prop52);
+
+      // Reset hitungan tiap 3 bulan (Triwulanan)
+      if(index % 3 === 0){
+        totalDevTriwulan = 0;
+        countTriwulan = 0;
+      }
+
+      totalDevTriwulan += devSeluruh;
+      countTriwulan++;
+
+      // Simpan hasil hitungan ini ke dalam objek data secara permanen
+      r.devSeluruhBulanIni = devSeluruh;
+      r.rataDeviasiBulanIni = Math.min((totalDevTriwulan / countTriwulan), 100);
+      // ✅ Rumus baru sesuai aturan IKPA Kemenkeu
+    if (r.rataDeviasiBulanIni <= 5) {
+      r.ikpaBulanIni = 100;
+    } else {
+      r.ikpaBulanIni = 100 - (r.rataDeviasiBulanIni - 5);
+    }
+    });
+  }
+
+function renderIndikator(){
+  if(!dataIndikator.length){ document.getElementById('indikatorBody').innerHTML='<div class="loading-state">Belum ada data. Muat data terlebih dahulu.</div>'; return; }
+  const bulan = document.getElementById('h3_bulan').value;
+  const akun  = document.getElementById('h3_akun').value;
+  let rows = bulan ? dataIndikator.filter(r=>r.bulan===bulan) : dataIndikator;
+
+  // Aggregate
+  let totR51=0,totR52=0,totP51=0,totP52=0,totPaguAll=0,totPagu51=0,totPagu52=0;
+  rows.forEach(r=>{
+  totR51 += Number(r.rencana51) || 0;
+  totR52 += Number(r.rencana52) || 0;
+  totP51 += Number(r.penyerapan51) || 0;
+  totP52 += Number(r.penyerapan52) || 0;
+
+  totPaguAll = rows.length ? Number(rows[0].paguKeseluruhan)||0 : 0;
+  totPagu51  += Number(r.pagu51) || 0;
+  totPagu52  += Number(r.pagu52) || 0;
+  });
+
+  let totR=0,totP=0;
+  if(!akun||akun==='51'){totR+=totR51;totP+=totP51;}
+  if(!akun||akun==='52'){totR+=totR52;totP+=totP52;}
+
+// ✅ TAMBAHKAN DI SINI
+const devAmt = totR - totP;
+
+// 1. Hitung persentase deviasi per akun (mentah)
+const rawDevPct51 = totR51 > 0 ? ((totR51 - totP51) / totR51 * 100) : 0;
+const rawDevPct52 = totR52 > 0 ? ((totR52 - totP52) / totR52 * 100) : 0;
+
+// 2. Hitung proporsi Pagu terhadap Pagu Keseluruhan
+const propPagu51 = totPaguAll > 0 ? (totPagu51 / totPaguAll) : 0;
+const propPagu52 = totPaguAll > 0 ? (totPagu52 / totPaguAll) : 0;
+
+// 3. Kalikan deviasi mentah dengan proporsi pagu (Deviasi Tertimbang)
+const devTimbangAll51 = rawDevPct51 * propPagu51;
+const devTimbangAll52 = rawDevPct52 * propPagu52;
+
+// 4. Deviasi Keseluruhan = Penjumlahan nilai MUTLAK (Absolute) deviasi tertimbang
+// Ini menyesuaikan dengan standar perhitungan tabel & Kemenkeu
+const devPct = (Math.abs(devTimbangAll51) + Math.abs(devTimbangAll52)).toFixed(2);
+
+// Update untuk kartu Deviasi Akun 51 & 52 (tetap tampilkan plus/minus aslinya)
+const devPct51 = rawDevPct51.toFixed(2);
+const devPct52 = rawDevPct52.toFixed(2);
+
+const serapPct = totR > 0 
+  ? (totP / totR * 100).toFixed(1)
+  : 0;
+
+// Ambil nilai banner dari baris terakhir yang sedang difilter/ditampilkan
+let devSeluruhLast = 0;
+let rataDeviasiBanner = 0;
+let ikpaScoreBanner = 100;
+
+if (rows.length > 0) {
+  const barisTerakhir = rows[rows.length - 1];
+  devSeluruhLast = barisTerakhir.devSeluruhBulanIni;
+  rataDeviasiBanner = barisTerakhir.rataDeviasiBulanIni;
+  ikpaScoreBanner = barisTerakhir.ikpaBulanIni;
+}
+
+  document.getElementById('indikatorBody').innerHTML=`
+    <!-- IKPA Banner -->
+    <div class="ikpa-banner">
+      <div class="ikpa-left">
+        <div class="ikpa-title">NILAI IKPA</div>
+        <div class="ikpa-score">${fmtF(ikpaScoreBanner,2)}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px">${bulan||'Kumulatif s.d. '+getLastBulan(rows)}</div>
+      </div>
+      <div class="ikpa-right">
+        <div class="ikpa-stat"><div class="ikpa-stat-label">RATA² DEVIASI</div><div class="ikpa-stat-val">${fmtF(rataDeviasiBanner,2)}%</div></div>
+        <div class="ikpa-stat"><div class="ikpa-stat-label">DEVIASI SELURUH</div><div class="ikpa-stat-val">${fmtF(devSeluruhLast,2)}%</div></div>
+        <div class="ikpa-stat"><div class="ikpa-stat-label">PENYERAPAN</div><div class="ikpa-stat-val">${serapPct}%</div></div>
+        <div class="ikpa-stat"><div class="ikpa-stat-label">TOTAL PAGU</div><div class="ikpa-stat-val">${fmt(totPaguAll)}</div></div>
+      </div>
+    </div>
+
+    <!-- Deviasi cards -->
+    <div class="dev-row">
+      <div class="dev-card">
+        <div class="dev-card-label">DEVIASI KESELURUHAN</div>
+        <div class="dev-card-val ${Number(devPct)>=0?'red':'green'}">${devPct}%</div>
+      </div>
+      <div class="dev-card">
+        <div class="dev-card-label">DEVIASI AKUN 51</div>
+        <div class="dev-card-val ${Number(devPct51)>=0?'red':'green'}">${devPct51}%</div>
+      </div>
+      <div class="dev-card">
+        <div class="dev-card-label">DEVIASI AKUN 52</div>
+        <div class="dev-card-val ${Number(devPct52)>=0?'red':'green'}">${devPct52}%</div>
+      </div>
+      <div class="dev-card">
+        <div class="dev-card-label">SELISIH NOMINAL</div>
+        <div class="dev-card-val ${devAmt>=0?'red':'green'}" style="font-size:12px">${fmt(devAmt)}</div>
+      </div>
+    </div>
+
+    <!-- Pie charts -->
+    <div class="h3-top" style="margin-bottom:12px">
+      <div class="pie-card">
+        <div class="pie-label">Total Rencana Penarikan Dana</div>
+        <div style="position:relative;height:150px"><canvas id="cPie1"></canvas></div>
+        <div class="pie-val">${fmt(totR)}</div>
+        <div class="pie-sub">51: ${fmt(totR51)} &nbsp;|&nbsp; 52: ${fmt(totR52)}</div>
+      </div>
+      <div class="pie-card">
+        <div class="pie-label">Total Penyerapan / Realisasi</div>
+        <div style="position:relative;height:150px"><canvas id="cPie2"></canvas></div>
+        <div class="pie-val">${fmt(totP)}</div>
+        <div class="pie-sub">51: ${fmt(totP51)} &nbsp;|&nbsp; 52: ${fmt(totP52)}</div>
+      </div>
+    </div>
+
+    <!-- Tabel lengkap per bulan -->
+    <div class="detail-card" style="padding:14px">
+      <div class="card-title">Tabel Indikator Per Bulan</div>
+      <div class="h3-tbl-wrap" style="max-height:260px;overflow-y:auto">
+        <table class="h3-tbl">
+          <thead>
+            <tr>
+              <th rowspan="2" class="bulan-col" style="text-align:left">Bulan</th>
+              <th rowspan="2">Pagu</th>
+              <th colspan="2" class="th-rencana">Rencana</th>
+              <th colspan="2" class="th-penyerapan">Penyerapan</th>
+              <th colspan="2" class="th-deviasi">Deviasi</th>
+              <th colspan="2" class="th-deviasi">% Deviasi</th>
+              <th colspan="2" class="th-proporsi">% Proporsi</th>
+              <th colspan="2" class="th-devtimbang">% Dev Timbang</th>
+              <th rowspan="2" class="th-devtimbang">Dev Seluruh</th>
+              <th rowspan="2" class="th-devtimbang">Rata² Dev</th>
+              <th rowspan="2">IKPA</th>
+            </tr>
+            <tr>
+              ${(!akun||akun==='51')?'<th class="th-rencana">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-rencana">52</th>':''}
+              ${(!akun||akun==='51')?'<th class="th-penyerapan">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-penyerapan">52</th>':''}
+              ${(!akun||akun==='51')?'<th class="th-deviasi">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-deviasi">52</th>':''}
+              ${(!akun||akun==='51')?'<th class="th-deviasi">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-deviasi">52</th>':''}
+              ${(!akun||akun==='51')?'<th class="th-proporsi">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-proporsi">52</th>':''}
+              ${(!akun||akun==='51')?'<th class="th-devtimbang">51</th>':''}
+              ${(!akun||akun==='52')?'<th class="th-devtimbang">52</th>':''}
+            </tr>
+          </thead>
+          <tbody>
+          
+         ${rows.map(r=>{
+            const pctDev51 = r.rencana51 > 0 ? ((r.deviasi51 / r.rencana51) * 100) : 0;
+            const pctDev52 = r.rencana52 > 0 ? ((r.deviasi52 / r.rencana52) * 100) : 0;
+
+            const prop51 = r.paguKeseluruhan > 0 ? (r.pagu51 / r.paguKeseluruhan * 100) : 0;
+            const prop52 = r.paguKeseluruhan > 0 ? (r.pagu52 / r.paguKeseluruhan * 100) : 0;
+
+            const devTimbang51 = pctDev51 * (prop51/100);
+            const devTimbang52 = pctDev52 * (prop52/100);
+
+            // Nilai absolut Deviasi Seluruh untuk di tabel HTML
+            const devSeluruhRow = Math.abs(devTimbang51) + Math.abs(devTimbang52);
+
+            return `<tr>
+              <td class="bulan-col">${r.bulan}</td>
+              <td class="num">${fmt(r.paguKeseluruhan)}</td>
+
+              <td class="num">${fmt(r.rencana51)}</td>
+              <td class="num">${fmt(r.rencana52)}</td>
+
+              <td class="num">${fmt(r.penyerapan51)}</td>
+              <td class="num">${fmt(r.penyerapan52)}</td>
+
+              <td class="ctr">${fmt(r.deviasi51)}</td>
+              <td class="ctr">${fmt(r.deviasi52)}</td>
+
+              <td class="ctr ${pctDev51>0?'neg':'pos'}">${fmtF(pctDev51,2)}%</td>
+              <td class="ctr ${pctDev52>0?'neg':'pos'}">${fmtF(pctDev52,2)}%</td>
+
+              <td class="ctr">${fmtF(prop51,2)}%</td>
+              <td class="ctr">${fmtF(prop52,2)}%</td>
+
+              <td class="ctr">${fmtF(devTimbang51,2)}%</td>
+              <td class="ctr">${fmtF(devTimbang52,2)}%</td>
+
+              <td class="ctr">${fmtF(devSeluruhRow,2)}%</td>
+              <td class="ctr">${fmtF(r.rataDeviasiBulanIni,2)}%</td>
+              <td class="ctr" style="font-weight:700">${fmtF(r.ikpaBulanIni,2)}</td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  dChart('cPie1'); dChart('cPie2');
+  const mkPie=(val,total,c1,c2)=>({
+  type:'pie',
+  data:{
+    labels:['Terserap','Sisa'],
+    datasets:[{
+      data:[
+        val,
+        Math.max(0, total - val)
+      ],
+    backgroundColor:[c1,c2],borderColor:['#fff'],borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
+  });
+  charts['cPie1']=new Chart(document.getElementById('cPie1'),mkPie(totP,totR,'#d4848a','#f5e0e2'));
+  charts['cPie2']=new Chart(document.getElementById('cPie2'),mkPie(totP,totR,'#a8c5b5','#e8f0ec'));
+}
+
+function getLastBulan(rows){ const r=[...rows].filter(x=>x.penyerapan51>0||x.penyerapan52>0); return r.length?r[r.length-1].bulan:'–'; }
+
+/* ── FETCH ── */
+async function fetchAll(){
+  const url = API_URL;
+  showErr('');
+  document.getElementById('rencanaBody').innerHTML='<div class="loading-state">Mengambil data...</div>';
+  try{
+    const [r1,r2,r3]=await Promise.all([
+      fetch(url+'?action=getRencana').then(r=>r.json()),
+      fetch(url+'?action=getRealisasi').then(r=>r.json()),
+      fetch(url+'?action=getIndikator').then(r=>r.json())
+    ]);
+    if(r1.error) throw new Error('Rencana: '+r1.error);
+    if(r2.error) throw new Error('Realisasi: '+r2.error);
+    if(r3.error) throw new Error('Indikator: '+r3.error);
+    dataRencana=r1.data||[]; dataRealisasi=r2.data||[]; dataIndikator=r3.data||[];
+    
+    // Panggil perhitungan kumulatif di sini sebelum data masuk ke tabel/filter
+    siapkanDataKumulatif(dataIndikator); 
+    
+    renderRencana(); renderRealisasi(); renderIndikator();
+  }catch(e){
+    showErr('Gagal: '+e.message);
+    document.getElementById('rencanaBody').innerHTML='<div class="loading-state">Gagal memuat. Klik <strong>Demo</strong>.</div>';
+  }
+}
+function showErr(msg){const el=document.getElementById('errorBox');el.style.display=msg?'block':'none';el.textContent=msg;}
+
+window.onload = () => {
+  fetchAll();
+};
+</script>
